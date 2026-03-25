@@ -47,6 +47,13 @@ const AGENT_DEFINITIONS: AgentInfo[] = [
         description: "Evaluates startup founders — scores applications, researches backgrounds, generates recommendations",
         modelField: "founder_eval_model",
     },
+    {
+        role: "startup_analyst",
+        displayName: "Startup Analyst",
+        emoji: "🧠",
+        description: "Analyzes startup ideas — market sizing, competitive analysis, scoring frameworks, Notion integration",
+        modelField: "startup_analyst_model",
+    },
 ];
 
 interface AgentConfig {
@@ -55,17 +62,25 @@ interface AgentConfig {
     sales_model?: string | null;
     content_model?: string | null;
     founder_eval_model?: string | null;
+    startup_analyst_model?: string | null;
 }
 
-export function AgentsOverview({ config }: { config: AgentConfig | null }) {
+export function AgentsOverview({
+    config,
+    activeRoles,
+}: {
+    config: AgentConfig | null;
+    activeRoles?: string[];
+}) {
     const cfg = config ?? {};
 
-    // Show agents that have a model configured (meaning they're active for this customer)
-    const activeAgents = AGENT_DEFINITIONS.filter((agent) => {
-        const model = cfg[agent.modelField as keyof AgentConfig];
-        // Coordinator is always active; others only if model is set
-        return agent.role === "coordinator" || (model !== null && model !== undefined && model !== "");
-    });
+    // If activeRoles is provided, use it to filter; otherwise use DB-based detection
+    const activeAgents = activeRoles
+        ? AGENT_DEFINITIONS.filter((agent) => activeRoles.includes(agent.role))
+        : AGENT_DEFINITIONS.filter((agent) => {
+            const model = cfg[agent.modelField as keyof AgentConfig];
+            return agent.role === "coordinator" || (model !== null && model !== undefined && model !== "");
+        });
 
     return (
         <div className="grid gap-4 md:grid-cols-2">

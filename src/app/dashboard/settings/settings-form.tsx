@@ -13,6 +13,8 @@ interface AgentConfig {
     research_model: string | null;
     sales_model: string | null;
     content_model: string | null;
+    founder_eval_model: string | null;
+    startup_analyst_model: string | null;
     max_agent_iterations: number | null;
     max_task_cost_usd: number | null;
     personality: string | null;
@@ -21,35 +23,56 @@ interface AgentConfig {
     language: string | null;
 }
 
+export interface AgentModelField {
+    field: string;
+    label: string;
+}
+
 const MODEL_OPTIONS = [
+    "x-ai/grok-4.1-fast",
+    "anthropic/claude-opus-4.6",
+    "anthropic/claude-sonnet-4.6",
+    "anthropic/claude-haiku-4",
     "google/gemini-2.5-flash-preview",
     "google/gemini-2.5-pro-preview",
-    "anthropic/claude-sonnet-4",
-    "anthropic/claude-haiku-4",
     "openai/gpt-4o",
     "openai/gpt-4o-mini",
     "deepseek/deepseek-chat-v3",
+    "perplexity/sonar",
+    "perplexity/sonar-deep-research",
+];
+
+const DEFAULT_AGENT_FIELDS: AgentModelField[] = [
+    { field: "coordinator_model", label: "Coordinator" },
+    { field: "research_model", label: "Research" },
+    { field: "sales_model", label: "Sales" },
+    { field: "content_model", label: "Content" },
 ];
 
 export function SettingsForm({
     config,
     isAdmin = true,
     readOnly = false,
+    agentFields,
 }: {
     config: AgentConfig;
     isAdmin?: boolean;
     readOnly?: boolean;
+    agentFields?: AgentModelField[];
 }) {
     const router = useRouter();
     const [saving, setSaving] = useState(false);
     const [apiKey, setApiKey] = useState("");
     const [showKeyInput, setShowKeyInput] = useState(false);
 
-    const [models, setModels] = useState({
-        coordinator_model: config.coordinator_model ?? "google/gemini-2.5-flash-preview",
-        research_model: config.research_model ?? "google/gemini-2.5-flash-preview",
-        sales_model: config.sales_model ?? "google/gemini-2.5-flash-preview",
-        content_model: config.content_model ?? "google/gemini-2.5-flash-preview",
+    const fields = agentFields ?? DEFAULT_AGENT_FIELDS;
+
+    const [models, setModels] = useState<Record<string, string>>(() => {
+        const initial: Record<string, string> = {};
+        for (const f of fields) {
+            initial[f.field] = (config as unknown as Record<string, string | null>)[f.field] ?? "google/gemini-2.5-flash-preview";
+        }
+        return initial;
     });
 
     const [prefs, setPrefs] = useState({
@@ -126,14 +149,14 @@ export function SettingsForm({
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                    {(["coordinator_model", "research_model", "sales_model", "content_model"] as const).map((field) => (
-                        <div key={field} className="space-y-1">
-                            <Label className="text-xs text-muted-foreground capitalize">
-                                {field.replace("_model", "")}
+                    {fields.map((agentField) => (
+                        <div key={agentField.field} className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">
+                                {agentField.label}
                             </Label>
                             <select
-                                value={models[field]}
-                                onChange={(e) => !readOnly && setModels({ ...models, [field]: e.target.value })}
+                                value={models[agentField.field] ?? ""}
+                                onChange={(e) => !readOnly && setModels({ ...models, [agentField.field]: e.target.value })}
                                 disabled={readOnly}
                                 className={selectClass}
                             >

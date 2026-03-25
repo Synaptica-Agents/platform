@@ -10,7 +10,23 @@ import { ChartContainer } from "@/components/dashboard/chart-container";
 import { ActivityChart } from "@/components/dashboard/activity-chart";
 import { JobsChart } from "@/components/dashboard/jobs-chart";
 import { SessionsChart } from "@/components/dashboard/sessions-chart";
-import { SettingsForm } from "./settings/settings-form";
+import { SettingsForm, type AgentModelField } from "./settings/settings-form";
+
+// Agent fields for the non-admin overview (matches actual deployed agents)
+const OVERVIEW_AGENT_FIELDS: AgentModelField[] = [
+    { field: "coordinator_model", label: "Coordinator" },
+    { field: "research_model", label: "Research" },
+    { field: "founder_eval_model", label: "Founder Evaluation" },
+    { field: "startup_analyst_model", label: "Startup Analyst" },
+];
+
+// Default models for agents whose columns don't exist in Supabase yet
+const MODEL_DEFAULTS: Record<string, string> = {
+    coordinator_model: "x-ai/grok-4.1-fast",
+    research_model: "anthropic/claude-sonnet-4.6",
+    founder_eval_model: "anthropic/claude-opus-4.6",
+    startup_analyst_model: "anthropic/claude-opus-4.6",
+};
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -79,10 +95,12 @@ export default async function DashboardPage() {
                     <SettingsForm
                         config={{
                             has_openrouter_key: !!config?.openrouter_api_key_encrypted,
-                            coordinator_model: config?.coordinator_model ?? null,
-                            research_model: config?.research_model ?? null,
+                            coordinator_model: config?.coordinator_model ?? MODEL_DEFAULTS.coordinator_model,
+                            research_model: config?.research_model ?? MODEL_DEFAULTS.research_model,
                             sales_model: config?.sales_model ?? null,
                             content_model: config?.content_model ?? null,
+                            founder_eval_model: config?.founder_eval_model ?? MODEL_DEFAULTS.founder_eval_model,
+                            startup_analyst_model: config?.startup_analyst_model ?? MODEL_DEFAULTS.startup_analyst_model,
                             max_agent_iterations: config?.max_agent_iterations ?? null,
                             max_task_cost_usd: config?.max_task_cost_usd ?? null,
                             personality: config?.personality ?? null,
@@ -92,6 +110,7 @@ export default async function DashboardPage() {
                         }}
                         isAdmin={false}
                         readOnly
+                        agentFields={OVERVIEW_AGENT_FIELDS}
                     />
                 </div>
             </div>
