@@ -9,9 +9,13 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    const customerId = await getCustomerIdForUser(supabase, user.id);
+    if (!customerId) return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+
     const { data, error } = await supabase
         .from("scheduled_jobs")
         .select("*")
+        .eq("customer_id", customerId)
         .order("created_at", { ascending: false });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -61,6 +65,9 @@ export async function PATCH(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    const customerId = await getCustomerIdForUser(supabase, user.id);
+    if (!customerId) return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+
     const body = await request.json();
     const { id, enabled } = body;
 
@@ -72,6 +79,7 @@ export async function PATCH(request: NextRequest) {
         .from("scheduled_jobs")
         .update({ enabled })
         .eq("id", id)
+        .eq("customer_id", customerId)
         .select()
         .single();
 
@@ -85,11 +93,14 @@ export async function DELETE(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    const customerId = await getCustomerIdForUser(supabase, user.id);
+    if (!customerId) return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
 
-    const { error } = await supabase.from("scheduled_jobs").delete().eq("id", id);
+    const { error } = await supabase.from("scheduled_jobs").delete().eq("id", id).eq("customer_id", customerId);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     return NextResponse.json({ success: true });
