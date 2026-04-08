@@ -15,6 +15,7 @@ import {
     LogOut,
     ChevronRight,
     Bot,
+    Database,
 } from "lucide-react";
 import {
     Sidebar,
@@ -58,6 +59,7 @@ const mainNavItems = [
     { title: "Agents", href: "/dashboard/agents", slug: "agents", icon: Bot, adminOnly: false },
     { title: "Company Brain", href: "/dashboard/brain", slug: "brain", icon: Brain, adminOnly: true },
     { title: "Integrations", href: "/dashboard/integrations", slug: "integrations", icon: Plug, adminOnly: false },
+    { title: "Notion", href: "/dashboard/notion", slug: "notion", icon: Database, adminOnly: false },
     { title: "Jobs", href: "/dashboard/jobs", slug: "jobs", icon: CalendarClock, adminOnly: true },
     { title: "Skills", href: "/dashboard/skills", slug: "skills", icon: Zap, adminOnly: true },
     { title: "Approvals", href: "/dashboard/approvals", slug: "approvals", icon: ClipboardCheck, adminOnly: true },
@@ -68,6 +70,7 @@ const pageTitles: Record<string, string> = {
     "/dashboard/agents": "Agents",
     "/dashboard/brain": "Company Brain",
     "/dashboard/integrations": "Integrations",
+    "/dashboard/notion": "Notion",
     "/dashboard/jobs": "Jobs",
     "/dashboard/skills": "Skills",
     "/dashboard/approvals": "Approvals",
